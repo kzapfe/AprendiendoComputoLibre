@@ -1,0 +1,7 @@
+datos<-sleep
+
+tstudent <- t.test(extra~group, data=datos)
+
+for (i in 1:100){
+    print(paste(" soy el i = ", i))
+}

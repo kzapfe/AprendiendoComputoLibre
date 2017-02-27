@@ -1,0 +1,5 @@
+# t test para estos datos de sleep
+tururu<-t.test(extra~group, data=sleep)
+#y como plotearlos
+
+
