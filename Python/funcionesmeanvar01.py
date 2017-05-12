@@ -4,6 +4,7 @@ Clemens '''
 
 
 from neo import io
+from neo.core import Block
 import quantities as qn
 import numpy as np
 import scipy
