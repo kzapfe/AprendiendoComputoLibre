@@ -15,16 +15,16 @@ import os
 ''' Funciones que nos ayudan a obtener datos de un
 archivo experimental'''
 
-cell = '/Users/felipeantoniomendezsalcido/Desktop/V_M analysis/C1_21_2_17/PP1_L06hz_C1_21_2_17.abf'
+cell = input()  # Enter the full path of the recordings to analyze
+
+recordings = [cell + '/' + rec for rec in os.listdir(cell)]
 
 
 def get_data():
     '''Abre el archivo especificado en 'cell' mediante la funcion correspondiente a archivos .abf'''
-    traces = io.AxonIO(filename=cell)
+    choose = input()
+    traces = io.AxonIO(filename=recordings[int(choose)])
     data = traces.read_block()
-
-
-data = get_data()
 
 
 def show_data(data):
@@ -38,7 +38,7 @@ def find_stim(data, threshold=100, PP=0):
     pasa de un umbral de un analogsignal. Regresa el primer punto que supere el umbral por defecto'''
     stim = np.where(data > threshold)[0][PP]
     stim = int(stim)
-    return primer
+    return stim
 
 
 def extract_event(data, index, start=50, stop=500):
@@ -47,17 +47,23 @@ def extract_event(data, index, start=50, stop=500):
     return extracted
 
 
-def extracted_block(data, threshold=100, start=50, stop=500, PP=0):
+def block_events(data, threshold=100, start=50, stop=500, PP=0):
     '''funcion que a partir de un Bloque de neo
  crea otro recortado y alineado'''
 # Al parecer este bloque no contiene todos los atributos necesarios
-    eoi = Block()  # events of interest
+    clean_data = Block()  # events of interest
     for trace in data.segments:
         # Toma el primer canal (activo), de cada analogsignal y la recorta
         stim_index = find_stim(trace.analogsignals[0], threshold, PP)
         event = extract_event(trace.analogsignals[0], stim_index, start, stop)
-        eoi.segments.append(event)
-    return eoi
+        clean_data.segments.append(event)  # events of interest
+    return clean_data
+
+
+def show_clean_data():
+    '''In case you wanna check them'''
+    for i in clean_data.segments:
+        plt.plot(i.analogsignals[0])
 
 
 '''
@@ -67,14 +73,13 @@ de un arreglo de señales digitales y luego saca el promedio y la variancia
 
 
 def peaks(clean_data):
-    traces = clean_data.size["segments"]
     peaks = np.zeros(traces)
-    for trace in range(traces):
+    for trace in range(clean_data.size["segments"]):
         peaks[trace] = np.min(clean_data.segments[trace])
     return peaks
 
 
-def M_V(clean_data):
-    peak_values = peaks(clean_data)
-    M_V = (np.mean(minimos), np.var(minimos))
-    return result
+# def M_V(clean_data):
+#     peak_values = peaks(clean_data)
+#     M_V = (np.mean(minimos), np.var(minimos))
+#     return result
