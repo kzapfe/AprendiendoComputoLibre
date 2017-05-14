@@ -2,7 +2,7 @@
 ''' Colección de funciones para extracción de datos y ajuste de funciones para realizar un Variance-Mean Analysis '''
 
 # librerías y módulos requeridos
-import neo as neo  # paquete diseñado para abrir archivos de propietario
+from neo import io  # paquete diseñado para abrir archivos de propietario
 import quantities as qn
 import numpy as np
 import pandas as pd
@@ -16,94 +16,73 @@ import os
 archivo experimental'''
 
 
-def get_data(cell, recording):
-    '''[dir, index -> neo.block]
-    Abre el archivo especificado en 'cell' mediante la funcion correspondiente a archivos .abf'''
-    recordings = [cell+'/'+rec for rec in os.listdir(cell)]
-    traces = neo.io.AxonIO(filename=recordings[int(recording)])
+def get_data(recording):
+    '''Abre el archivo especificado en 'cell' mediante la funcion correspondiente a archivos .abf'''
+    traces = io.AxonIO(filename=recording)
     data = traces.read_block()
     return data
 
-def show_data(data):
-    '''Grafica todos los trazos'''
-    for i in data.segments:
-        plt.plot(i.analogsignals[0])
 
-
-def find_stim(data, threshold=100, PP=0):
-    '''Funcion que da el índice estimulo indicado que
-    pasa de un umbral de un analogsignal. Regresa el primer punto que supere el umbral por defecto'''
-    stim = np.where(data.segments[].analogsignals[0] > threshold)[0][PP]
-    stim = int(stim)
+def find_stim(trace, threshold=100, PP=0):
+    '''[trace=data.segments[x], num, num -> num]
+    Regresa el índice del determinado(PP) punto que supere el umbral por defecto.'''
+    stim = np.where(trace.analogsignals[0] > threshold)[0][PP]
     return stim
 
-stim = np.where(data.segments[0].analogsignals[0] > 100)
-stim
-type(data)
-def extract_event(data, index, start=50, stop=500):
+
+def extract_event(trace, stim_index, start=50, stop=500):
     '''Funcion que nos recorta una señal a partir de un indice'''
-    extracted = data[index - start:index + stop]
+    extracted = trace.analogsignals[0][stim_index - start:stim_index + stop]
     return extracted
 
 
-# def block_events(data, threshold=100, start=50, stop=500, PP=0):
-#     '''funcion que a partir de un Bloque de neo
-#  crea otro recortado y alineado'''
-# # Al parecer este bloque no contiene todos los atributos necesarios
-#     clean_data = neo.core.Block()  # events of interest
-#     for trace in data.segments:
-#         # Toma el primer canal (activo), de cada analogsignal y la recorta
-#         stim_index = find_stim(trace.analogsignals[0], threshold, PP)
-#         event = extract_event(trace.analogsignals[0], stim_index, start, stop)
-#         clean_data.segments.append(event)  # events of interest
-#     return clean_data
-
-def clean_data(data, threshold=100, start=50, stop=500, PP=0):
-    '''[neo,block, int, int, int, int -> list]
-    Crea una lista de n.arrays con los eventos extraidos de cada señal determinados desde el indice-50 hasta indice+500, el indice determina el estimulo
-    '''
-    clean_data = []
+def block_events(data, threshold=100, start=50, stop=500, PP=0):
+    '''funcion que a partir de un Bloque de neo crea una lista de arrays de eventos recortados y alineados. No necesitamos crear un nuevo neo.Block, estos arrays conservan toda la información de todas formas.
+ '''
+    clean_data = []  # events of interest
     for trace in data.segments:
-        stim_index = find_stim(trace.analogsignals[0], threshold, PP)
-        event = extract_event(trace.analogsignals[0], stim_index, start, stop)
-        clean_data.append(event)
+        # Toma el primer canal (activo), de cada analogsignal y la recorta
+        stim_index = find_stim(trace, threshold, PP)
+        event = extract_event(trace, stim_index, start, stop)
+        clean_data.append(event)  # events of interest
     return clean_data
-
-def show_clean_data():
-    '''In case you wanna check them'''
-    for i in clean_data.segments:
-        plt.plot(i.analogsignals[0])
-
-
-'''
-Funciones que nos ayudan a obtener los mínimos
-de un arreglo de señales digitales y luego saca el promedio y la variancia
-'''
 
 
 def peaks(clean_data):
+    '''Funciones que nos ayudan a obtener los mínimos
+    de un arreglo de señales digitales
+    '''
+    traces = len(clean_data)
     peaks = np.zeros(traces)
-    for trace in range(clean_data.size["segments"]):
-        peaks[trace] = np.min(clean_data.segments[trace])
+    for trace in range(traces):
+        peaks[trace] = np.min(clean_data[trace])
     return peaks
 
 
-# def M_V(clean_data):
-#     peak_values = peaks(clean_data)
-#     M_V = (np.mean(minimos), np.var(minimos))
-#     return result
+''' Hasta aquí todas funcionan individualmente. tidy_dic debería correr archivo por archivo extraer el nombre como llave y asignarle el array de picos. La extracción de nombres y asignación al diccionario funcionan pero por alguna razón las funciones de extracción de datos no funcionan en loop.
+    La idea final sería pasarle un directorio de un folder que sea en sí mismo un experimento completo y regrese un diccionario con los nombres de los factores como llaves y su respectivo array con los valores de minimos (picos). Este diccionario podría pasarse a un pandas.DataFrame fácilmente si esta bien ordenado.
+'''
 
 
-cell = input()
-def tidy_dic(cell):
+def tidy_dic(cell, threshold=100, start=50, stop=500, PP=0):
     '''[dir -> dictionary]
     '''
+    cell_name = cell.split('/')[-2]
+    recordings = [cell + rec for rec in os.listdir(cell)]
     tidy_cell = {}
-    for i in os.listdir(cell):
-        key = i.split('.')[0]
-        tidy_cell[key] =
+    for recording in recordings:
+        key = (recording.split('/')[-1]).strip('_{}.abf'.format(cell_name))
+        data = get_data(recording)
+        clean_data = block_events(data)
+        peaks = peaks(clean_data)
+        tidy_cell[key] = peaks
     return tidy_cell
-tidy_dic(cell)
 
-clean_data(data)
-data.segments
+
+cell = '/Users/felipeantoniomendezsalcido/Desktop/V_M analysis/C1_21_2_17/'
+recordings = [cell + rec for rec in os.listdir(cell)]
+recording = recordings[1]
+for record in recordings:
+    data = get_data(record)
+    clean_data = block_events(data)
+    peaks = peaks(clean_data)
