@@ -48,7 +48,7 @@ def block_events(data, threshold=100, start=50, stop=500, PP=0):
     return clean_data
 
 
-def peaks(clean_data):
+def get_peaks(clean_data):
     '''Funciones que nos ayudan a obtener los mínimos
     de un arreglo de señales digitales
     '''
@@ -74,15 +74,21 @@ def tidy_dic(cell, threshold=100, start=50, stop=500, PP=0):
         key = (recording.split('/')[-1]).strip('_{}.abf'.format(cell_name))
         data = get_data(recording)
         clean_data = block_events(data)
-        peaks = peaks(clean_data)
+        peaks = get_peaks(clean_data)
         tidy_cell[key] = peaks
     return tidy_cell
 
 
+tidy_dic(cell)
+cel
 cell = '/Users/felipeantoniomendezsalcido/Desktop/V_M analysis/C1_21_2_17/'
 recordings = [cell + rec for rec in os.listdir(cell)]
-recording = recordings[1]
-for record in recordings:
-    data = get_data(record)
-    clean_data = block_events(data)
-    peaks = peaks(clean_data)
+recordings
+recording = recordings[3]
+# for record in recordings:
+for rec in recordings:
+    data = get_data(rec)
+    stim_index = find_stim(trace, threshold, PP)
+    peaks = get_peaks(clean_data)
+    print(1)
+data
