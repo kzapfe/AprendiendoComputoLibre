@@ -64,7 +64,7 @@ def get_peaks(clean_data):
 '''
 
 
-def tidy_dic(cell, threshold=100, start=50, stop=500, PP=0):
+def tidy_dic(cell):
     '''[dir -> dictionary]
     '''
     cell_name = cell.split('/')[-2]
@@ -73,7 +73,7 @@ def tidy_dic(cell, threshold=100, start=50, stop=500, PP=0):
     for recording in recordings:
         key = (recording.split('/')[-1]).strip('_{}.abf'.format(cell_name))
         data = get_data(recording)
-        clean_data = block_events(data)
+        clean_data = block_events(data, threshold=100, start=50, stop=500, PP=0)
         peaks = get_peaks(clean_data)
         tidy_cell[key] = peaks
     return tidy_cell
@@ -83,12 +83,17 @@ tidy_dic(cell)
 cel
 cell = '/Users/felipeantoniomendezsalcido/Desktop/V_M analysis/C1_21_2_17/'
 recordings = [cell + rec for rec in os.listdir(cell)]
-recordings
-recording = recordings[3]
-# for record in recordings:
+recording = recordings[1]
+all_peaks = []
 for rec in recordings:
     data = get_data(rec)
-    stim_index = find_stim(trace, threshold, PP)
-    peaks = get_peaks(clean_data)
-    print(1)
+    for trace in data.segments:
+        stim_index = find_stim(trace)
+        extracted = extract_event(trace, stim_index)
+        peaks = np.min(extracted)
+        all_peaks.append(peaks)
+return all_peaks
 data
+all_peaks
+for rec in recordings:
+    print(rec)
