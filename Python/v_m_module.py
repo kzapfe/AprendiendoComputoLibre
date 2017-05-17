@@ -4,9 +4,8 @@
 from neo import io  # paquete diseñado para abrir archivos de propietario
 import quantities as qn
 import numpy as np
-import matplotlib.pyplot as plt
 import os
-#import pandas as pd
+import pandas as pd
 #import seaborn as sb
 # %matplotlib inline
 ''' Funciones que nos ayudan a obtener datos de un
@@ -39,9 +38,10 @@ def extract_event(trace, stim_index, start=50, stop=500):
     return extracted
 
 
-def block_events(data, threshold=60, start=50, stop=500, PP=0, many=50):
-    '''funcion que a partir de un Bloque de neo crea una lista de arrays de eventos recortados y alineados. No necesitamos crear un nuevo neo.Block, estos arrays conservan toda la información de todas formas.
- '''
+def block_events(data, threshold=60, start=50, stop=500, PP=0, many=100):
+    '''funcion que a partir de un Bloque de neo crea una lista de arrays de eventos recortados y alineados.
+    No necesitamos crear un nuevo neo.Block, estos arrays conservan toda la información de todas formas.
+  '''
     clean_data = []  # events of interest
     k=0        
     for trace in data.segments:
@@ -55,7 +55,7 @@ def block_events(data, threshold=60, start=50, stop=500, PP=0, many=50):
             trace.analogsignals[0]=trace.analogsignals[0]-prom
             stim_index = find_stim(trace, threshold, PP)
             event = extract_event(trace, stim_index, start, stop)
-            print(str(stim_index)+' '+str(start)+' '+str(stop))
+            #print(str(stim_index)+' '+str(start)+' '+str(stop))
             clean_data.append(event)  # events of interest
 
     return clean_data
@@ -91,9 +91,18 @@ def tidy_dic(cell):
         
         clean_data = block_events(data)
         peaks = get_peaks(clean_data)
-        tidy_cell[key] = data
+        tidy_cell[key] = peaks
     return tidy_cell
    
+
+
+def datatodf(tidydic):
+    ''' Convert dictionary of minimums to dataframe R style '''
+     result=pndf.DataFrame(dict([(k,pn.Series(v)) for k,v in tidydic.items() ]))
+    return result
+    
+
+
 
 #tidy_dic(cell)
 #cel
