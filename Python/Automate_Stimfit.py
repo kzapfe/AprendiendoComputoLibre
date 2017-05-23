@@ -1,49 +1,62 @@
 import stf
-import os
 import csv
 
-cell = '/Users/felipeantoniomendezsalcido/Desktop/V_M_Project/C1_21_2_17'
 
-os.chdir(cell)
-
-recordings = os.listdir(cell)
-
-def set_stf(PATH):
-    os.chdir(str(PATH))
-    cell = str(PATH).split('/')[-1]
-    data_filename = cell+'_data.csv'
-    return cell, data_filename
-
-
-def set_cursos(bs_start = 30, bs_end=55, p_st=58, p_end=115) :
-    """ [int, int, int, int -> NonType]
-    Set base_line and peak, as for now, cursos
+def set_cursos(recording):
+    """ [str -> NonType]
+    Set base_line and peak, as for now, cursos either for first or second pulse.
     """
-    stf.set_base_start(bs_start, True)
-    stf.set_base_end(bs_end, True)
-    stf.set_peak_start(p_st, True)
-    stf.set_peak_end(p_end, True)
+    if 'PP2' in recording:
+        stf.set_base_start(114, True)
+        stf.set_base_end(116.5, True)
+        stf.set_peak_start(118, True)
+        stf.set_peak_end(230, True)
+    else:
+        stf.set_base_start(30, True)
+        stf.set_base_end(55, True)
+        stf.set_peak_start(58, True)
+        stf.set_peak_end(115, True)
     return
 
 
-def get_values():
-    ID = recording
+def get_values(recording):
+    """ [str, int -> tupple]
+    Set the identificator of each measurement, gets peak, risetime, latency and gives back a tupple.
+    """
+    ID = str(recording).strip('.abf')
     peak = stf.get_peak()-stf.get_base()
     risetime = stf.get_risetime()
-    latency = (stf.foot_index()-570) * stf.get_sampling_interval()
+    if 'PP2' in recording:
+        latency = (stf.foot_index()-1170) * stf.get_sampling_interval()
+    else:
+        latency = (stf.foot_index()-570) * stf.get_sampling_interval()
     values = (ID, peak, risetime, latency)
     return values
 
 
-def get_values_from(recording):
+def get_values_from(recording, data_list):
     stf.select_all()
     indices = stf.get_selected_indices()
-    recording_values = []
     for i in indices:
-        set_trace(i)
-        recording_values.append(get_values())
-    return recording_values
+        stf.set_trace(i)
+        data_list.append(get_values(recording))
+    return data_list
 
-with open(data_filename, 'wb') as csvfile:
-    line_writer = csv.writer(csvfile, delimiter = ',', )
-    line_writer.writerow(['ID', 'Peak', 'RiseTime', 'Latency'])
+
+def write_data(data_filename, data_list):
+    with open(data_filename, 'wb') as csvfile:
+      line_writer = csv.writer(csvfile, delimiter = ',', quoting=csv.QUOTE_NONNUMERIC)
+      line_writer.writerows(data_list)
+
+
+def analyze_cell(PATH):
+    os.chdir(str(PATH))
+    cell = str(PATH).split('/')[-1]
+    recordings = os.listdir(PATH)
+    data_filename = cell+'_data.csv'
+    data_list = [('ID', 'Peaks', 'RiseTime', 'Latency')]
+    for recording in recordings:
+        set_cursos(recording)
+        get_values_from(recording, data_list)
+    write_data(data_filename, data_list)
+    print('Done')
