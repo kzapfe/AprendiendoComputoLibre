@@ -1,4 +1,5 @@
 import stf
+import os
 import csv
 
 
@@ -27,7 +28,7 @@ def get_values(recording):
     peak = stf.get_peak()-stf.get_base()
     risetime = stf.get_risetime()
     if 'PP2' in recording:
-        latency = (stf.foot_index()-1170) * stf.get_sampling_interval()
+         latency = (stf.foot_index()-1170) * stf.get_sampling_interval()
     else:
         latency = (stf.foot_index()-570) * stf.get_sampling_interval()
     values = (ID, peak, risetime, latency)
@@ -56,7 +57,9 @@ def analyze_cell(PATH):
     data_filename = cell+'_data.csv'
     data_list = [('ID', 'Peaks', 'RiseTime', 'Latency')]
     for recording in recordings:
+        stf.file_open(recording)
         set_cursos(recording)
         get_values_from(recording, data_list)
+        stf.close_this()
     write_data(data_filename, data_list)
     print('Done')
