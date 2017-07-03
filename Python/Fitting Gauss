@@ -1,0 +1,119 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sb
+from scipy import stats
+from PyAstronomy import pyasl
+from scipy.optimize import curve_fit
+
+
+Sr_df = pd.read_csv('/Users/felipeantoniomendezsalcido/Desktop/Prog101/Sr_data.csv')
+Sr_df.head
+
+(hist, bins) = np.histogram(All.dropna(), bins= 'fd')
+bins
+with sb.plotting_context('notebook'):
+    cells = ['Cell 1', 'Cell 2', 'Cell 3']
+    f, ax = plt.subplots()
+    sb.set_style('ticks')
+    sb.set_palette('ocean')
+    sb.despine()
+    for column in Sr_df:
+        sb.distplot(Sr_df[column].dropna(), norm_hist= True, bins= bins, kde= True, rug=True, label=column)
+    ax.set_xlabel('Amp(pA)')
+    ax.set_ylabel('KDE')
+    plt.legend()
+    plt.xticks(np.arange(0, 120, 10))
+    plt.show()
+f.savefig('Sr_all.svg')
+
+stats.ks_2samp(St_df.iloc[:,2], All)
+All.size
+
+stats.probplot(All, dist= 'norm',  plot=plt)
+plt.show()
+
+outs = pyasl.generalizedESD(All, 20)
+outs
+new_all = All.drop(outs[1])
+new_all.size
+
+with sb.plotting_context('notebook'):
+    pb_fig = plt.figure()
+    ax = plt.subplot()
+    stats.probplot(new_all, dist= 'norm', plot= ax)
+    #sb.set_palette()
+    sb.despine()
+    plt.show()
+pb_fig.savefig('pb_plot.svg')
+
+with sb.plotting_context('notebook'):
+    all_fig, ax1 = plt.subplots()
+    sb.set_style('ticks')
+    sb.distplot(All.dropna(), norm_hist=False, kde=False,  rug=True, label= 'All events', color= 'Black', ax=ax1, bins= 50)
+    ax = all_fig.gca()
+    ax.spines['top'].set_visible(False)
+    ax2 = ax1.twinx()
+    sb.kdeplot(All.dropna(), color = 'Black', ax= ax2, bw=1.8, kernel='gau')
+    ax = all_fig.gca()
+    ax.spines['top'].set_visible(False)
+    ax1.set_xlabel('Amplitud(pA)')
+    ax1.set_ylabel('Cuenta')
+    ax2.set_ylabel('Densidad')
+    plt.xticks(np.arange(0, 120, 10))
+    plt.show()
+all_fig.savefig('All_Sr.svg')
+All.size
+Allkde = sb.kdeplot(All.dropna())
+
+All.mean()
+All.median()
+
+new_all.mean()
+new_all.median()
+new_CV = stats.variation(new_all)
+new_CV
+All_CV= stats.variation(All)
+All_CV
+
+
+def gauss(x,mu,sigma,A):
+    return A*np.exp(-(x-mu)**2/2/sigma**2)
+
+def bimod(x,mu1,sigma1,A1,mu2,sigma2,A2):
+    return gauss(x,mu1,sigma1,A1)+gauss(x,mu2,sigma2,A2)
+
+def trimod(x, mu1, mu2, mu3, A1, A2, A3, sigma1, sigma2, sigma3):
+    return gauss(x,mu1,sigma1,A1)+gauss(x,mu2,sigma2,A2)+gauss(x, mu3, sigma3, A3)
+
+def trimod2(x, mu1, A1, A2, A3, sigma1, sigma2, sigma3):
+    return gauss(x,mu1,sigma1,A1)+gauss(x,mu1*2,sigma2,A2)+gauss(x, mu1*3, sigma3, A3)
+
+(hist, bins) = plt.hist(All.dropna(), bins= 'fd')
+y,x,_= plt.hist(All.dropna(), bins= 'fd',alpha=.3,label='data')
+x.size
+x=(x[1:]+x[:-1])/2
+y
+
+g1 = gauss(x, *popt)
+y2 = y-g1
+
+plt.plot(x, y2)
+plt.show()
+
+
+
+popt, covs = curve_fit(gauss, x, y)
+
+popt
+
+expected=(23, 53, 71, 95, 20, 10, 1, 1, 1)
+expected2=(20,95,12,6,1,1,1)
+limites2=([10,50,1,1,1,1,1],[30,120,30,20,8,8,8])
+params,cov=curve_fit(trimod2,x,y,bounds=limites2)
+params
+sigma=np.sqrt(np.diag(cov))
+plt.plot(x, trimod2(x,*params),color='red',lw=1,label='model')
+plt.legend()
+plt.show()
+print(params)
