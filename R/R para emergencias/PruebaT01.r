@@ -2,12 +2,24 @@ library(magrittr) # para usar el operador %in%
 library(stringr) # para usar str_sub
 
 ### Primero le quitamos a los datos la info privada
-datos <- read.csv("VoluntariosEstados01.csv")
+datos <- read.csv("VoluntariosEstados19s.csv")
+
+### Vamos a inventar una funcion que nos deje la lada pero que quite el telefono
+
+sacalada <- function(telnumer){
+    result <- str_sub(telnumer, 1,3)
+    return(result)
+}
+
+###aplicamos la funcion a cada elemento de la columna y la hacemos nueva col
+datos["Lada"] <- apply(datos["Teléfono"], 1, sacalada)
+    
 quitar <- c("Apellido.Paterno", "Apellido.Materno", "Correo", "Teléfono", "Nombre.Completo")
 datos <- datos[ ,!( names(datos) %in% quitar ) ] #Observen como negamos las columnas con !
+
 write.csv(datos, "VoluntariosSanitizados.csv") #Y hacemos un cvs mas privado
 
-datos <- read.csv("VoluntariosSanitizados01.csv") #y lo volvemos a cargar
+#datos <- read.csv("VoluntariosSanitizados01.csv") #y lo volvemos a cargar
 
 
 str_sub("tuabuela", -1,-1) #Esto nos da el último caracter de "tuabuela"
