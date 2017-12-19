@@ -81,11 +81,22 @@ library(wesanderson)
 
 ###o esta otra versión
 
-figura <- ggplot(datos, aes(x=PosGen, y=Secuencia, fill=PosGen))+geom_boxplot()
-figura+geom_jitter()+ggtitle("Cambio en la horas de sueño")
+figura <- ggplot(datos, aes(x=PosGen, y=Secuencia, fill=PosGen))+
+    geom_boxplot()+
+    geom_jitter(width=0.04)+
+    ggtitle("Dispersión de Voluntariado por Género")+
+    theme_linedraw() +
+    theme(legend.position="none")+
+    scale_fill_manual(values=wes_palette(name="Darjeeling"))+
+    scale_x_discrete(name="Posible Género")+
+    scale_y_continuous(name="Secuencia de Aparición")+
+    theme(text=element_text(size=14, family="Times", hjust=0.5), axis.text.x=element_text(size=12, family="Times"),
+          axis.text.y=element_text(size=12, family="Times")
+          )+coord_flip()+annotate("140", x=100, y=10, label="140")
 
-+theme_linedraw() +theme(legend.position="none")+scale_fill_manual(values=wes_palette(name="GrandBudapest")))+scale_x_discrete(name="Grupo")+scale_y_continuous(name="sueño extra")+theme(plot.title=element_text(size=14, family="Times", face="bold", hjust=0.5)
 
+figura
+ggsave("DispersionPorGenero.png", plot=figura, dpi=92)
 
 
 
